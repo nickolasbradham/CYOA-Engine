@@ -3,9 +3,10 @@ package nbradham.cyoa;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -44,10 +46,11 @@ final class CYOAEngine {
             JTextArea area = new JTextArea(30, 50);
             JPanel optPane = new JPanel();
             fileMen.add(createMenuItem("Open", new ActionListener() {
-                private final StringBuilder sb = new StringBuilder();
-                private BufferedReader reader;
+                private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
+                private final HashMap<String, Object> vars = new HashMap<>();
+                private RandomAccessFile raf;
+                private String str;
                 private char c;
-                private short line;
                 private boolean run;
 
                 @Override
@@ -56,12 +59,10 @@ final class CYOAEngine {
                     jfc.setDialogTitle("Open Adventure File");
                     if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
                         try {
-                            if (reader != null) {
-                                reader.close();
+                            if (raf != null) {
+                                raf.close();
                             }
-                            reader = new BufferedReader(new FileReader(jfc.getSelectedFile()));
-                            reader.mark(0);
-                            line = 0;
+                            raf = new RandomAccessFile(jfc.getSelectedFile(), "r");
                             parseStory();
                         } catch (IOException ex) {
                             Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
@@ -70,11 +71,12 @@ final class CYOAEngine {
                 }
 
                 private String nextTok() throws IOException {
-                    sb.setLength(0);
-                    while (!Character.isWhitespace(c = (char) reader.read())) {
-                        sb.append(c);
+                    sb0.setLength(0);
+                    while ((c = (char) raf.read()) != 0xFFFF && !Character.isWhitespace(c)) {
+                        sb0.append(c);
                     }
-                    return sb.toString();
+                    System.out.printf("\"%s\"%n", sb0);
+                    return c == 0xFFFF ? null : sb0.toString();
                 }
 
                 private void parseStory() throws IOException {
@@ -83,32 +85,88 @@ final class CYOAEngine {
                         switch (nextTok()) {
                             case ">c" ->
                                 area.setText("");
+                            case ">f" ->
+                                vars.put(nextTok(), null);
                             case ">h" ->
-                                head.setText(reader.readLine());
+                                head.setText(readLine());
+                            case ">i" ->
+                                vars.put(nextTok(), JOptionPane.showInputDialog(raf.readLine()));
+                            case ">j" ->
+                                jump(nextTok());
                             case ">l" ->
-                                reader.readLine();
+                                raf.readLine();
                             case ">o" -> {
-                                String lab = nextTok();
-                                JButton jb = new JButton(reader.readLine());
-                                jb.addActionListener(ev -> {
-                                    try {
-                                        if (!lab.equals("next")) {
-                                            while (!nextTok().equals(">l") && !nextTok().equals(lab));
-                                        }
-                                        parseStory();
-                                    } catch (IOException ex) {
-                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                });
-                                optPane.add(jb);
+                                createButton();
+                            }
+                            case ">of" -> {
+                                if ((str = nextTok()).charAt(0) == '!' && !vars.containsKey(str.substring(1))) {
+                                    createButton();
+                                } else {
+                                    raf.readLine();
+                                }
                             }
                             case ">w" ->
                                 run = false;
+                            case "" -> {
+                            }
                             default -> {
-                                area.append(sb.toString() + ' ' + reader.readLine());
+                                area.append(sb0.toString());
+                                area.append(" ");
+                                area.append(readLine());
+                                area.append("\n");
                             }
                         }
                     }
+                }
+
+                private void createButton() throws IOException {
+                    String lab = nextTok();
+                    JButton jb = new JButton(raf.readLine());
+                    jb.addActionListener(ev -> {
+                        optPane.removeAll();
+                        try {
+                            if (!lab.equals("next")) {
+                                jump(lab);
+                            }
+                            parseStory();
+                        } catch (IOException ex) {
+                            Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                    optPane.add(jb);
+                    optPane.revalidate();
+                    optPane.repaint();
+                }
+
+                private void jump(String lab) throws IOException {
+                    if (forward(lab)) {
+                        raf.seek(0);
+                        forward(lab);
+                    }
+                }
+
+                private boolean forward(String lab) throws IOException {
+                    while ((str = nextTok()) != null && !(">l".equals(str) && lab.equals(nextTok())));
+                    return str == null;
+                }
+
+                private String readLine() throws IOException {
+                    sb0.setLength(0);
+                    while ((c = (char) raf.read()) != '\n') {
+                        switch (c) {
+                            case '<' -> {
+                                while ((c = (char) raf.read()) != '>') {
+                                    sb1.append(c);
+                                }
+                                sb0.append(vars.get(sb1.toString()));
+                                sb1.setLength(0);
+                                break;
+                            }
+                            default ->
+                                sb0.append(c);
+                        }
+                    }
+                    return sb0.toString();
                 }
             }, 'O'));
             fileMen.add(createMenuItem("Load Spot", e -> {
