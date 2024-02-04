@@ -1,0 +1,76 @@
+>l start
+>h Example Story
+An example story by the creator of the engine.
+>o next Begin
+>w
+>c
+>i name What is your name?
+Welcome, <name>! <name> will be a good reader.
+>h Chapter 1: <name> Awakens...
+You wake up in what appears to be an old rusty cell. Sun light filters through the tiny windows from outside the cell.
+It is quiet and you don't see anyone around.
+
+>l firstOp
+What do you do?
+>of !called next Call out for someone.
+>o tryDoor Try to open the cell door.
+>o wait Sit and wait.
+>w
+>f called
+You yell, "Hello? Is anybody there?"
+However, nothing responds.
+>j firstOp
+
+>l wait
+>jf wait>3 waited
+>f time+1
+>tf wait>1 You decide to wait longer. You have waited <v wait> times.
+Nothing happens for what you can guess is about two hours.
+>j firstOp
+
+>l waited
+>h Salvation!
+After waiting for what felt like an eternity, you hear a bunch of foot steps and voices.
+"Is anybody here? Are any survivors here that need help?" you hear someone call.
+"Yes! I'm here! Help!" you reply.
+>j end0
+
+>l tryDoor
+You try the door and surprisingly, it swings open.
+You step out into the corridor and can see a doorway at the end. In the other direction, there is a large hole in the wall with sun light blasting through.
+Which way do you go?
+>o next The door.
+>o hole The hole.
+>w
+As you approach the door you notice a set of keys on the ground.
+Do you take them?
+>o next Take them.
+>o leaveKeys Leave them.
+>w
+>f keys
+You snatch the keys before heading through the door.
+>j ch2
+
+>l leaveKeys
+You decide to leave the keys and walk through the door. You probably won't need them later.
+
+>l ch2
+>h Chapter 2
+>c
+You're now in what looks like an old bunker. You follow exit signs to a locked gate. Through the gate you see an open field with blast holes all over it.
+>tf !keys The gate is locked and now you feel like a clown for not picking up the keys. You go back and retrieve the keys.
+After unlocking the gate with the keys you picked up, you are saved by a rescue group that was slowly making it's way through the area.
+
+>l end0
+>h Ending 0
+It turns out that you were a prisoner of war and after the battle finally ended you were saved by a rescue squad!.
+The end.
+>j end
+
+>l hole
+>h Ending 1
+You climb through the hole and see a large battlefield, but the field is quiet. You find yourself a military car that still works and drive off into the sunset.
+
+>l end
+Author's note: I know it was short, but come on. It's supposed to be an example story. Thanks for reading! \<3
+>o start Go back to start.
