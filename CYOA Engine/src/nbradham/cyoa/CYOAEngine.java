@@ -48,8 +48,10 @@ final class CYOAEngine {
                 private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
                 private final HashMap<String, Object> vars = new HashMap<>();
                 private RandomAccessFile raf;
-                private String str;
+                private String str0, str1;
                 private char c;
+                private float f;
+                private byte n;
                 private boolean run;
 
                 @Override
@@ -79,20 +81,56 @@ final class CYOAEngine {
 
                 private void parseStory() throws IOException {
                     run = true;
-                    while (run && (str = nextTok()) != null) {
-                        switch (str) {
+                    while (run && (str0 = nextTok()) != null) {
+                        switch (str0) {
                             case ">c" ->
                                 area.setText("");
                             case ">cv" ->
                                 vars.clear();
-                            case ">f" ->
-                                vars.put(nextTok(), null);
+                            case ">f" -> {
+                                str0 = readLine();
+                                n = -1;
+                                while (++n < str0.length() && Character.isLetterOrDigit(c = str0.charAt(n)));
+                                if (n == str0.length()) {
+                                    vars.put(str0, null);
+                                } else {
+                                    str1 = str0.substring(n + 1);
+                                    str0 = str0.substring(0, n);
+                                    switch (c) {
+                                        case ' ' -> {
+                                            try {
+                                                vars.put(str0, Float.valueOf(str1));
+                                            } catch (NumberFormatException e) {
+                                                vars.put(str0, str1);
+                                            }
+                                        }
+                                        case '+' ->
+                                            op((a, b) -> a + b);
+                                        case '-' ->
+                                            op((a, b) -> a - b);
+                                        case '*' ->
+                                            op((a, b) -> a * b);
+                                        case '/' ->
+                                            op((a, b) -> a / b);
+                                        case '%' ->
+                                            op((a, b) -> a % b);
+                                    }
+                                }
+                            }
                             case ">h" ->
                                 head.setText(readLine());
                             case ">i" ->
                                 vars.put(nextTok(), JOptionPane.showInputDialog(raf.readLine()));
                             case ">j" ->
                                 jump(nextTok());
+                            case ">jf" ->
+                                testExp(() -> {
+                                    try {
+                                        jump(nextTok());
+                                    } catch (IOException ex) {
+                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                });
                             case ">l" ->
                                 raf.readLine();
                             case ">o" -> {
@@ -121,12 +159,21 @@ final class CYOAEngine {
                             case "" -> {
                             }
                             default -> {
-                                area.append(sb0.toString());
+                                area.append((str0 = sb0.toString()).charAt(0) == '\\' ? str0.substring(1) : str0);
                                 area.append(" ");
                                 printRest();
                             }
                         }
                     }
+                }
+
+                private void op(VarOp o) {
+                    try {
+                        f = Float.parseFloat(str1);
+                    } catch (NumberFormatException e) {
+                        f = (float) vars.get(str1);
+                    }
+                    vars.put(str0, o.doOp((float) vars.getOrDefault(str0, 0f), f));
                 }
 
                 private void printRest() throws IOException {
@@ -135,7 +182,9 @@ final class CYOAEngine {
                 }
 
                 private void testExp(Runnable r) throws IOException {
-                    if ((str = nextTok()).charAt(0) == '!' && !vars.containsKey(str.substring(1))) {
+                    //TODO Finish
+                    n = 0;
+                    if ((str0 = nextTok()).charAt(0) == '!' && !vars.containsKey(str0.substring(1))) {
                         r.run();
                     } else {
                         raf.readLine();
@@ -169,8 +218,8 @@ final class CYOAEngine {
                 }
 
                 private boolean forward(String lab) throws IOException {
-                    while ((str = nextTok()) != null && !(">l".equals(str) && lab.equals(nextTok())));
-                    return str == null;
+                    while ((str0 = nextTok()) != null && !(">l".equals(str0) && lab.equals(nextTok())));
+                    return str0 == null;
                 }
 
                 private String readLine() throws IOException {
@@ -192,6 +241,12 @@ final class CYOAEngine {
                         }
                     }
                     return sb0.toString();
+                }
+
+                @FunctionalInterface
+                private static interface VarOp {
+
+                    float doOp(float a, float b);
                 }
             }, 'O'));
             fileMen.add(createMenuItem("Load Spot", e -> {

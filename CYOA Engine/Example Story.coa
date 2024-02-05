@@ -3,6 +3,8 @@
 >cv
 >h Example Story
 An example story by the creator of the engine.
+\>c This was a escape char test.
+\\>c Here's another.
 >o next Begin
 >w
 >c
@@ -25,7 +27,7 @@ However, nothing responds.
 
 >l wait
 >jf wait>3 waited
->f time+1
+>f wait+1
 >t wait>1 You decide to wait longer. You have waited <wait> times.
 Nothing happens for what you can guess is about two hours.
 >j firstOp
