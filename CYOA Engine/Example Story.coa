@@ -1,4 +1,6 @@
 >l start
+>c
+>cv
 >h Example Story
 An example story by the creator of the engine.
 >o next Begin
@@ -24,7 +26,7 @@ However, nothing responds.
 >l wait
 >jf wait>3 waited
 >f time+1
->tf wait>1 You decide to wait longer. You have waited <wait> times.
+>t wait>1 You decide to wait longer. You have waited <wait> times.
 Nothing happens for what you can guess is about two hours.
 >j firstOp
 
@@ -56,9 +58,8 @@ You decide to leave the keys and walk through the door. You probably won't need 
 
 >l ch2
 >h Chapter 2
->c
 You're now in what looks like an old bunker. You follow exit signs to a locked gate. Through the gate you see an open field with blast holes all over it.
->tf !keys The gate is locked and now you feel like a clown for not picking up the keys. You go back and retrieve the keys.
+>t !keys The gate is locked and now you feel like a clown for not picking up the keys. You go back and retrieve the keys.
 After unlocking the gate with the keys you picked up, you are saved by a rescue group that was slowly making it's way through the area.
 
 >l end0

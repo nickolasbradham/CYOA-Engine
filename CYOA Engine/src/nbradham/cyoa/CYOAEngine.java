@@ -3,7 +3,6 @@ package nbradham.cyoa;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -75,16 +74,17 @@ final class CYOAEngine {
                     while ((c = (char) raf.read()) != 0xFFFF && !Character.isWhitespace(c)) {
                         sb0.append(c);
                     }
-                    System.out.printf("\"%s\"%n", sb0);
                     return c == 0xFFFF ? null : sb0.toString();
                 }
 
                 private void parseStory() throws IOException {
                     run = true;
-                    while (run) {
-                        switch (nextTok()) {
+                    while (run && (str = nextTok()) != null) {
+                        switch (str) {
                             case ">c" ->
                                 area.setText("");
+                            case ">cv" ->
+                                vars.clear();
                             case ">f" ->
                                 vars.put(nextTok(), null);
                             case ">h" ->
@@ -99,11 +99,22 @@ final class CYOAEngine {
                                 createButton();
                             }
                             case ">of" -> {
-                                if ((str = nextTok()).charAt(0) == '!' && !vars.containsKey(str.substring(1))) {
-                                    createButton();
-                                } else {
-                                    raf.readLine();
-                                }
+                                testExp(() -> {
+                                    try {
+                                        createButton();
+                                    } catch (IOException ex) {
+                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                });
+                            }
+                            case ">t" -> {
+                                testExp(() -> {
+                                    try {
+                                        printRest();
+                                    } catch (IOException ex) {
+                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                });
                             }
                             case ">w" ->
                                 run = false;
@@ -112,10 +123,22 @@ final class CYOAEngine {
                             default -> {
                                 area.append(sb0.toString());
                                 area.append(" ");
-                                area.append(readLine());
-                                area.append("\n");
+                                printRest();
                             }
                         }
+                    }
+                }
+
+                private void printRest() throws IOException {
+                    area.append(readLine());
+                    area.append("\n");
+                }
+
+                private void testExp(Runnable r) throws IOException {
+                    if ((str = nextTok()).charAt(0) == '!' && !vars.containsKey(str.substring(1))) {
+                        r.run();
+                    } else {
+                        raf.readLine();
                     }
                 }
 
@@ -162,6 +185,8 @@ final class CYOAEngine {
                                 sb1.setLength(0);
                                 break;
                             }
+                            case '\\' ->
+                                sb0.append((char) raf.read());
                             default ->
                                 sb0.append(c);
                         }
