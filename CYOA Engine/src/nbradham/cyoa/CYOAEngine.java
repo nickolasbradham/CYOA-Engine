@@ -44,6 +44,11 @@ final class CYOAEngine {
             JLabel head = new JLabel("Open an adventure to begin.");
             JTextArea area = new JTextArea(30, 50);
             JPanel optPane = new JPanel();
+            JMenuItem save = createMenuItem("Save Spot", e -> {
+                // TODO: Save Spot.
+            }, 'S');
+            save.setEnabled(false);
+            fileMen.add(save);
             fileMen.add(createMenuItem("Open", new ActionListener() {
                 private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
                 private final HashMap<String, Object> vars = new HashMap<>();
@@ -59,6 +64,7 @@ final class CYOAEngine {
                     jfc.setFileFilter(new FileNameExtensionFilter("Choose your Own Adventure File", "coa"));
                     jfc.setDialogTitle("Open Adventure File");
                     if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                        save.setEnabled(true);
                         try {
                             if (raf != null) {
                                 raf.close();
@@ -299,11 +305,6 @@ final class CYOAEngine {
             fileMen.add(createMenuItem("Load Spot", e -> {
                 // TODO: Load Spot.
             }, 'L'));
-            JMenuItem save = createMenuItem("Save Spot", e -> {
-                // TODO: Save Spot.
-            }, 'S');
-            save.setEnabled(false);
-            fileMen.add(save);
             JMenuBar bar = new JMenuBar();
             bar.add(fileMen);
             frame.setJMenuBar(bar);
