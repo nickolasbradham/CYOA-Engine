@@ -52,7 +52,7 @@ final class CYOAEngine {
                 private char c;
                 private float f;
                 private byte n;
-                private boolean run;
+                private boolean run, bool0;
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -90,12 +90,11 @@ final class CYOAEngine {
                             case ">f" -> {
                                 str0 = readLine();
                                 n = -1;
-                                while (++n < str0.length() && Character.isLetterOrDigit(c = str0.charAt(n)));
+                                toSym();
                                 if (n == str0.length()) {
                                     vars.put(str0, null);
                                 } else {
-                                    str1 = str0.substring(n + 1);
-                                    str0 = str0.substring(0, n);
+                                    splitStr();
                                     switch (c) {
                                         case ' ' -> {
                                             try {
@@ -167,13 +166,26 @@ final class CYOAEngine {
                     }
                 }
 
+                private void splitStr() {
+                    str1 = str0.substring(n + 1);
+                    str0 = str0.substring(0, n);
+                }
+
+                private void toSym() {
+                    while (++n < str0.length() && Character.isLetterOrDigit(c = str0.charAt(n)));
+                }
+
                 private void op(VarOp o) {
-                    try {
-                        f = Float.parseFloat(str1);
-                    } catch (NumberFormatException e) {
-                        f = (float) vars.get(str1);
-                    }
+                    f = getStr1Val();
                     vars.put(str0, o.doOp((float) vars.getOrDefault(str0, 0f), f));
+                }
+
+                private float getStr1Val() {
+                    try {
+                        return Float.parseFloat(str1);
+                    } catch (NumberFormatException e) {
+                        return (float) vars.get(str1);
+                    }
                 }
 
                 private void printRest() throws IOException {
@@ -182,9 +194,34 @@ final class CYOAEngine {
                 }
 
                 private void testExp(Runnable r) throws IOException {
-                    //TODO Finish
+                    str0 = nextTok();
                     n = 0;
-                    if ((str0 = nextTok()).charAt(0) == '!' && !vars.containsKey(str0.substring(1))) {
+                    toSym();
+                    if (n < str0.length()) {
+                        splitStr();
+                        switch (c) {
+                            case '=' -> {
+                                doComp((a, b) -> a == b, r);
+                            }
+                            case '!' -> {
+                                doComp((a, b) -> a != b, r);
+                            }
+                            case '<' -> {
+                                doComp((a, b) -> a < b, r);
+                            }
+                            case '>' -> {
+                                doComp((a, b) -> a > b, r);
+                            }
+                        }
+                    } else if (((bool0 = str0.charAt(0) == '!') && !vars.containsKey(str0.substring(1))) || (!bool0 && vars.containsKey(str0))) {
+                        r.run();
+                    } else {
+                        raf.readLine();
+                    }
+                }
+
+                private void doComp(VarComp c, Runnable r) throws IOException {
+                    if (c.doComp((float) vars.getOrDefault(str0, 0f), getStr1Val())) {
                         r.run();
                     } else {
                         raf.readLine();
@@ -230,7 +267,11 @@ final class CYOAEngine {
                                 while ((c = (char) raf.read()) != '>') {
                                     sb1.append(c);
                                 }
-                                sb0.append(vars.get(sb1.toString()));
+                                try {
+                                    sb0.append(String.format((f = (float) vars.get(sb1.toString())) == (byte) f ? "%.0f" : "%f", f));
+                                } catch (ClassCastException e) {
+                                    sb0.append(vars.get(sb1.toString()));
+                                }
                                 sb1.setLength(0);
                                 break;
                             }
@@ -247,6 +288,12 @@ final class CYOAEngine {
                 private static interface VarOp {
 
                     float doOp(float a, float b);
+                }
+
+                @FunctionalInterface
+                private static interface VarComp {
+
+                    boolean doComp(float a, float b);
                 }
             }, 'O'));
             fileMen.add(createMenuItem("Load Spot", e -> {
