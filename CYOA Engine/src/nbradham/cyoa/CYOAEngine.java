@@ -3,8 +3,11 @@ package nbradham.cyoa;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,9 +40,8 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 final class CYOAEngine {
 
-    private static final String EXT_SPT = "spt";
+    private static final String EXT_SPT = "spt", SUF_SPT = '.' + EXT_SPT, STR_NULL = "\0";
     private static final FileNameExtensionFilter FIL_COA = new FileNameExtensionFilter("Choose your Own Adventure File", "coa"), FIL_SPOT = new FileNameExtensionFilter("Spot File", EXT_SPT);
-    private static final String SUF_SPT = '.' + EXT_SPT;
 
     private final JFrame frame = new JFrame("Choose Your Own Adventure Engine");
     private final JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
@@ -53,7 +55,9 @@ final class CYOAEngine {
     private RandomAccessFile raf;
 
     private final JMenuItem save = createMenuItem("Save Spot", e -> {
-        procJFC(FIL_SPOT, "Save Spot File", fl -> {
+        prepJFC(FIL_SPOT, "Save Spot File");
+        if (jfc.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+            File fl = jfc.getSelectedFile();
             if (!fl.getName().endsWith(SUF_SPT)) {
                 fl = new File(fl + SUF_SPT);
             }
@@ -67,11 +71,12 @@ final class CYOAEngine {
                     dos.writeUTF(((NButton) nb).getText());
                 }
                 dos.writeUTF(file.getAbsolutePath());
+                dos.writeLong(raf.getFilePointer());
                 dos.writeByte(vars.size());
                 vars.forEach((k, v) -> {
                     try {
                         dos.writeUTF(k);
-                        dos.writeUTF(v == null ? "\0" : v.toString());
+                        dos.writeUTF(v == null ? STR_NULL : v.toString());
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -80,7 +85,7 @@ final class CYOAEngine {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-        });
+        }
     }, 'S');
 
     private String str0, str1;
@@ -96,13 +101,11 @@ final class CYOAEngine {
             JMenu fileMen = new JMenu("File");
             save.setEnabled(false);
             fileMen.add(createMenuItem("Open", e -> {
-                procJFC(FIL_COA, "Open Adventure File", fl -> {
+                openJFC(FIL_COA, "Open Adventure File", fl -> {
                     save.setEnabled(true);
                     try {
-                        if (raf != null) {
-                            raf.close();
-                        }
-                        raf = new RandomAccessFile(file = fl, "r");
+                        file = fl;
+                        openFile();
                         parseStory();
                     } catch (IOException ex) {
                         Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
@@ -111,7 +114,37 @@ final class CYOAEngine {
             }, 'O'));
             fileMen.add(save);
             fileMen.add(createMenuItem("Load Spot", e -> {
-                // TODO: Load Spot.
+                openJFC(FIL_SPOT, "Open Spot File", fl -> {
+                    try {
+                        DataInputStream dis = new DataInputStream(new FileInputStream(fl));
+                        head.setText(dis.readUTF());
+                        area.setText(dis.readUTF());
+                        n = dis.readByte();
+                        optPane.removeAll();
+                        for (byte i = 0; i < n; ++i) {
+                            createButton(dis.readUTF(), dis.readUTF());
+                        }
+                        if (!(file = new File(dis.readUTF())).exists() && openJFC(FIL_COA, "COA File missing. Select COA.", sel -> file = sel)) {
+                            return;
+                        }
+                        openFile();
+                        raf.seek(dis.readLong());
+                        n = dis.readByte();
+                        vars.clear();
+                        for (byte i = 0; i < n; ++i) {
+                            str0 = dis.readUTF();
+                            str1 = dis.readUTF();
+                            try {
+                                vars.put(str0, Float.valueOf(str1));
+                            } catch (NumberFormatException ex) {
+                                vars.put(str0, str1.equals(STR_NULL) ? null : str1);
+                            }
+                        }
+                        dis.close();
+                    } catch (IOException ex) {
+                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                });
             }, 'L'));
             JMenuBar bar = new JMenuBar();
             bar.add(fileMen);
@@ -128,12 +161,26 @@ final class CYOAEngine {
         });
     }
 
-    private void procJFC(FileNameExtensionFilter filter, String title, FileHandler fh) {
+    private void openFile() throws IOException {
+        if (raf != null) {
+            raf.close();
+        }
+        raf = new RandomAccessFile(file, "r");
+    }
+
+    private boolean openJFC(FileNameExtensionFilter filter, String title, FileHandler fh) {
         jfc.setFileFilter(filter);
         jfc.setDialogTitle(title);
         if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             fh.handle(jfc.getSelectedFile());
+            return false;
         }
+        return true;
+    }
+
+    private void prepJFC(FileNameExtensionFilter filter, String title) {
+        jfc.setFileFilter(filter);
+        jfc.setDialogTitle(title);
     }
 
     private void parseStory() throws IOException {
@@ -228,10 +275,14 @@ final class CYOAEngine {
         area.append("\n");
     }
 
-    private void createButton() throws IOException {
-        optPane.add(new NButton(nextTok(), raf.readLine()));
+    private void createButton(String jump, String label) {
+        optPane.add(new NButton(jump, label));
         optPane.revalidate();
         optPane.repaint();
+    }
+
+    private void createButton() throws IOException {
+        createButton(nextTok(), raf.readLine());
     }
 
     private void testExp(Runnable r) throws IOException {
