@@ -1,9 +1,12 @@
 package nbradham.cyoa;
 
-import java.awt.event.ActionEvent;
+import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -34,7 +37,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 final class CYOAEngine {
 
-    private static final FileNameExtensionFilter FIL_COA = new FileNameExtensionFilter("Choose your Own Adventure File", "coa"), FIL_SPOT = new FileNameExtensionFilter("Spot File", "spt");
+    private static final String EXT_SPT = "spt";
+    private static final FileNameExtensionFilter FIL_COA = new FileNameExtensionFilter("Choose your Own Adventure File", "coa"), FIL_SPOT = new FileNameExtensionFilter("Spot File", EXT_SPT);
+    private static final String SUF_SPT = '.' + EXT_SPT;
 
     private final JFrame frame = new JFrame("Choose Your Own Adventure Engine");
     private final JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
@@ -49,7 +54,32 @@ final class CYOAEngine {
 
     private final JMenuItem save = createMenuItem("Save Spot", e -> {
         procJFC(FIL_SPOT, "Save Spot File", fl -> {
-            // TODO: Save Spot. 
+            if (!fl.getName().endsWith(SUF_SPT)) {
+                fl = new File(fl + SUF_SPT);
+            }
+            try {
+                DataOutputStream dos = new DataOutputStream(new FileOutputStream(fl));
+                dos.writeUTF(head.getText());
+                dos.writeUTF(area.getText());
+                dos.writeByte(optPane.getComponentCount());
+                for (Component nb : optPane.getComponents()) {
+                    dos.writeUTF(((NButton) nb).j);
+                    dos.writeUTF(((NButton) nb).getText());
+                }
+                dos.writeUTF(file.getAbsolutePath());
+                dos.writeByte(vars.size());
+                vars.forEach((k, v) -> {
+                    try {
+                        dos.writeUTF(k);
+                        dos.writeUTF(v == null ? "\0" : v.toString());
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                });
+                dos.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
     }, 'S');
 
