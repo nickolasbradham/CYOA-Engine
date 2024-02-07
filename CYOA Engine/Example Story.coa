@@ -3,7 +3,7 @@
 >cv
 >h Example Story
 An example story by the creator of the engine.
-\>c This was a escape char test.
+\>c This was an escape char test.
 \\>c Here's another.
 >o next Begin
 >w

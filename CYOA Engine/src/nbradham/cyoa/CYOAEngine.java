@@ -33,275 +33,34 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 final class CYOAEngine {
 
-    private void start() {
+    private final JFrame frame = new JFrame("Choose Your Own Adventure Engine");
+    private final JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
+    private final JLabel head = new JLabel("Open an adventure to begin.");
+    private final JTextArea area = new JTextArea(30, 50);
+    private final HashMap<String, Object> vars = new HashMap<>();
+    private final JPanel optPane = new JPanel();
+    private final JMenuItem save = createMenuItem("Save Spot", e -> {
+        // TODO: Save Spot.
+    }, 'S');
+    private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
 
+    private RandomAccessFile raf;
+    private String str0, str1;
+    private float f;
+    private char c;
+    private byte n;
+    private boolean run, bool0;
+
+    private void start() {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Choose Your Own Adventure Engine");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.PAGE_AXIS));
             JMenu fileMen = new JMenu("File");
-            JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
-            JLabel head = new JLabel("Open an adventure to begin.");
-            JTextArea area = new JTextArea(30, 50);
-            JPanel optPane = new JPanel();
-            JMenuItem save = createMenuItem("Save Spot", e -> {
-                // TODO: Save Spot.
-            }, 'S');
             save.setEnabled(false);
-            fileMen.add(save);
-            fileMen.add(createMenuItem("Open", new ActionListener() {
-                private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
-                private final HashMap<String, Object> vars = new HashMap<>();
-                private RandomAccessFile raf;
-                private String str0, str1;
-                private char c;
-                private float f;
-                private byte n;
-                private boolean run, bool0;
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    jfc.setFileFilter(new FileNameExtensionFilter("Choose your Own Adventure File", "coa"));
-                    jfc.setDialogTitle("Open Adventure File");
-                    if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-                        save.setEnabled(true);
-                        try {
-                            if (raf != null) {
-                                raf.close();
-                            }
-                            raf = new RandomAccessFile(jfc.getSelectedFile(), "r");
-                            parseStory();
-                        } catch (IOException ex) {
-                            Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                }
-
-                private String nextTok() throws IOException {
-                    sb0.setLength(0);
-                    while ((c = (char) raf.read()) != 0xFFFF && !Character.isWhitespace(c)) {
-                        sb0.append(c);
-                    }
-                    return c == 0xFFFF ? null : sb0.toString();
-                }
-
-                private void parseStory() throws IOException {
-                    run = true;
-                    while (run && (str0 = nextTok()) != null) {
-                        switch (str0) {
-                            case ">c" ->
-                                area.setText("");
-                            case ">cv" ->
-                                vars.clear();
-                            case ">f" -> {
-                                str0 = readLine();
-                                n = -1;
-                                toSym();
-                                if (n == str0.length()) {
-                                    vars.put(str0, null);
-                                } else {
-                                    splitStr();
-                                    switch (c) {
-                                        case ' ' -> {
-                                            try {
-                                                vars.put(str0, Float.valueOf(str1));
-                                            } catch (NumberFormatException e) {
-                                                vars.put(str0, str1);
-                                            }
-                                        }
-                                        case '+' ->
-                                            op((a, b) -> a + b);
-                                        case '-' ->
-                                            op((a, b) -> a - b);
-                                        case '*' ->
-                                            op((a, b) -> a * b);
-                                        case '/' ->
-                                            op((a, b) -> a / b);
-                                        case '%' ->
-                                            op((a, b) -> a % b);
-                                    }
-                                }
-                            }
-                            case ">h" ->
-                                head.setText(readLine());
-                            case ">i" ->
-                                vars.put(nextTok(), JOptionPane.showInputDialog(raf.readLine()));
-                            case ">j" ->
-                                jump(nextTok());
-                            case ">jf" ->
-                                testExp(() -> {
-                                    try {
-                                        jump(nextTok());
-                                    } catch (IOException ex) {
-                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                });
-                            case ">l" ->
-                                raf.readLine();
-                            case ">o" -> {
-                                createButton();
-                            }
-                            case ">of" -> {
-                                testExp(() -> {
-                                    try {
-                                        createButton();
-                                    } catch (IOException ex) {
-                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                });
-                            }
-                            case ">t" -> {
-                                testExp(() -> {
-                                    try {
-                                        printRest();
-                                    } catch (IOException ex) {
-                                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-                                    }
-                                });
-                            }
-                            case ">w" ->
-                                run = false;
-                            case "" -> {
-                            }
-                            default -> {
-                                area.append((str0 = sb0.toString()).charAt(0) == '\\' ? str0.substring(1) : str0);
-                                area.append(" ");
-                                printRest();
-                            }
-                        }
-                    }
-                }
-
-                private void splitStr() {
-                    str1 = str0.substring(n + 1);
-                    str0 = str0.substring(0, n);
-                }
-
-                private void toSym() {
-                    while (++n < str0.length() && Character.isLetterOrDigit(c = str0.charAt(n)));
-                }
-
-                private void op(VarOp o) {
-                    f = getStr1Val();
-                    vars.put(str0, o.doOp((float) vars.getOrDefault(str0, 0f), f));
-                }
-
-                private float getStr1Val() {
-                    try {
-                        return Float.parseFloat(str1);
-                    } catch (NumberFormatException e) {
-                        return (float) vars.get(str1);
-                    }
-                }
-
-                private void printRest() throws IOException {
-                    area.append(readLine());
-                    area.append("\n");
-                }
-
-                private void testExp(Runnable r) throws IOException {
-                    str0 = nextTok();
-                    n = 0;
-                    toSym();
-                    if (n < str0.length()) {
-                        splitStr();
-                        switch (c) {
-                            case '=' -> {
-                                doComp((a, b) -> a == b, r);
-                            }
-                            case '!' -> {
-                                doComp((a, b) -> a != b, r);
-                            }
-                            case '<' -> {
-                                doComp((a, b) -> a < b, r);
-                            }
-                            case '>' -> {
-                                doComp((a, b) -> a > b, r);
-                            }
-                        }
-                    } else if (((bool0 = str0.charAt(0) == '!') && !vars.containsKey(str0.substring(1))) || (!bool0 && vars.containsKey(str0))) {
-                        r.run();
-                    } else {
-                        raf.readLine();
-                    }
-                }
-
-                private void doComp(VarComp c, Runnable r) throws IOException {
-                    if (c.doComp((float) vars.getOrDefault(str0, 0f), getStr1Val())) {
-                        r.run();
-                    } else {
-                        raf.readLine();
-                    }
-                }
-
-                private void createButton() throws IOException {
-                    String lab = nextTok();
-                    JButton jb = new JButton(raf.readLine());
-                    jb.addActionListener(ev -> {
-                        optPane.removeAll();
-                        try {
-                            if (!lab.equals("next")) {
-                                jump(lab);
-                            }
-                            parseStory();
-                        } catch (IOException ex) {
-                            Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    });
-                    optPane.add(jb);
-                    optPane.revalidate();
-                    optPane.repaint();
-                }
-
-                private void jump(String lab) throws IOException {
-                    if (forward(lab)) {
-                        raf.seek(0);
-                        forward(lab);
-                    }
-                }
-
-                private boolean forward(String lab) throws IOException {
-                    while ((str0 = nextTok()) != null && !(">l".equals(str0) && lab.equals(nextTok())));
-                    return str0 == null;
-                }
-
-                private String readLine() throws IOException {
-                    sb0.setLength(0);
-                    while ((c = (char) raf.read()) != '\n') {
-                        switch (c) {
-                            case '<' -> {
-                                while ((c = (char) raf.read()) != '>') {
-                                    sb1.append(c);
-                                }
-                                try {
-                                    sb0.append(String.format((f = (float) vars.get(sb1.toString())) == (byte) f ? "%.0f" : "%f", f));
-                                } catch (ClassCastException e) {
-                                    sb0.append(vars.get(sb1.toString()));
-                                }
-                                sb1.setLength(0);
-                                break;
-                            }
-                            case '\\' ->
-                                sb0.append((char) raf.read());
-                            default ->
-                                sb0.append(c);
-                        }
-                    }
-                    return sb0.toString();
-                }
-
-                @FunctionalInterface
-                private static interface VarOp {
-
-                    float doOp(float a, float b);
-                }
-
-                @FunctionalInterface
-                private static interface VarComp {
-
-                    boolean doComp(float a, float b);
-                }
+            fileMen.add(createMenuItem("Open", e -> {
+                procJFC();
             }, 'O'));
+            fileMen.add(save);
             fileMen.add(createMenuItem("Load Spot", e -> {
                 // TODO: Load Spot.
             }, 'L'));
@@ -320,6 +79,223 @@ final class CYOAEngine {
         });
     }
 
+    private void procJFC() {
+        jfc.setFileFilter(new FileNameExtensionFilter("Choose your Own Adventure File", "coa"));
+        jfc.setDialogTitle("Open Adventure File");
+        if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+            save.setEnabled(true);
+            try {
+                if (raf != null) {
+                    raf.close();
+                }
+                raf = new RandomAccessFile(jfc.getSelectedFile(), "r");
+                parseStory();
+            } catch (IOException ex) {
+                Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+
+    private void parseStory() throws IOException {
+        run = true;
+        while (run && (str0 = nextTok()) != null) {
+            switch (str0) {
+                case ">c" ->
+                    area.setText("");
+                case ">cv" ->
+                    vars.clear();
+                case ">f" -> {
+                    str0 = readLine();
+                    n = -1;
+                    toSym();
+                    if (n == str0.length()) {
+                        vars.put(str0, null);
+                    } else {
+                        splitStr();
+                        switch (c) {
+                            case ' ' -> {
+                                try {
+                                    vars.put(str0, Float.valueOf(str1));
+                                } catch (NumberFormatException e) {
+                                    vars.put(str0, str1);
+                                }
+                            }
+                            case '+' ->
+                                op((a, b) -> a + b);
+                            case '-' ->
+                                op((a, b) -> a - b);
+                            case '*' ->
+                                op((a, b) -> a * b);
+                            case '/' ->
+                                op((a, b) -> a / b);
+                            case '%' ->
+                                op((a, b) -> a % b);
+                        }
+                    }
+                }
+                case ">h" ->
+                    head.setText(readLine());
+                case ">i" ->
+                    vars.put(nextTok(), JOptionPane.showInputDialog(raf.readLine()));
+                case ">j" ->
+                    jump(nextTok());
+                case ">jf" ->
+                    testExp(() -> {
+                        try {
+                            jump(nextTok());
+                        } catch (IOException ex) {
+                            Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                case ">l" ->
+                    raf.readLine();
+                case ">o" -> {
+                    createButton();
+                }
+                case ">of" -> {
+                    testExp(() -> {
+                        try {
+                            createButton();
+                        } catch (IOException ex) {
+                            Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                }
+                case ">t" -> {
+                    testExp(() -> {
+                        try {
+                            printRest();
+                        } catch (IOException ex) {
+                            Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    });
+                }
+                case ">w" ->
+                    run = false;
+                case "" -> {
+                }
+                default -> {
+                    area.append((str0 = sb0.toString()).charAt(0) == '\\' ? str0.substring(1) : str0);
+                    area.append(" ");
+                    printRest();
+                }
+            }
+        }
+    }
+
+    private void printRest() throws IOException {
+        area.append(readLine());
+        area.append("\n");
+    }
+
+    private void createButton() throws IOException {
+        optPane.add(new NButton(nextTok(), raf.readLine()));
+        optPane.revalidate();
+        optPane.repaint();
+    }
+
+    private void testExp(Runnable r) throws IOException {
+        str0 = nextTok();
+        n = 0;
+        toSym();
+        if (n < str0.length()) {
+            splitStr();
+            switch (c) {
+                case '=' -> {
+                    doComp((a, b) -> a == b, r);
+                }
+                case '!' -> {
+                    doComp((a, b) -> a != b, r);
+                }
+                case '<' -> {
+                    doComp((a, b) -> a < b, r);
+                }
+                case '>' -> {
+                    doComp((a, b) -> a > b, r);
+                }
+            }
+        } else if (((bool0 = str0.charAt(0) == '!') && !vars.containsKey(str0.substring(1))) || (!bool0 && vars.containsKey(str0))) {
+            r.run();
+        } else {
+            raf.readLine();
+        }
+    }
+
+    private void doComp(VarComp c, Runnable r) throws IOException {
+        if (c.doComp((float) vars.getOrDefault(str0, 0f), getStr1Val())) {
+            r.run();
+        } else {
+            raf.readLine();
+        }
+    }
+
+    private float getStr1Val() {
+        try {
+            return Float.parseFloat(str1);
+        } catch (NumberFormatException e) {
+            return (float) vars.get(str1);
+        }
+    }
+
+    private void jump(String lab) throws IOException {
+        if (forward(lab)) {
+            raf.seek(0);
+            forward(lab);
+        }
+    }
+
+    private boolean forward(String lab) throws IOException {
+        while ((str0 = nextTok()) != null && !(">l".equals(str0) && lab.equals(nextTok())));
+        return str0 == null;
+    }
+
+    private void op(VarOp o) {
+        f = getStr1Val();
+        vars.put(str0, o.doOp((float) vars.getOrDefault(str0, 0f), f));
+    }
+
+    private void splitStr() {
+        str1 = str0.substring(n + 1);
+        str0 = str0.substring(0, n);
+    }
+
+    private void toSym() {
+        while (++n < str0.length() && Character.isLetterOrDigit(c = str0.charAt(n)));
+    }
+
+    private String readLine() throws IOException {
+        sb0.setLength(0);
+        while ((c = (char) raf.read()) != '\n') {
+            switch (c) {
+                case '<' -> {
+                    while ((c = (char) raf.read()) != '>') {
+                        sb1.append(c);
+                    }
+                    try {
+                        sb0.append(String.format((f = (float) vars.get(sb1.toString())) == (byte) f ? "%.0f" : "%f", f));
+                    } catch (ClassCastException e) {
+                        sb0.append(vars.get(sb1.toString()));
+                    }
+                    sb1.setLength(0);
+                    break;
+                }
+                case '\\' ->
+                    sb0.append((char) raf.read());
+                default ->
+                    sb0.append(c);
+            }
+        }
+        return sb0.toString();
+    }
+
+    private String nextTok() throws IOException {
+        sb0.setLength(0);
+        while ((c = (char) raf.read()) != 0xFFFF && !Character.isWhitespace(c)) {
+            sb0.append(c);
+        }
+        return c == 0xFFFF ? null : sb0.toString();
+    }
+
     private static JMenuItem createMenuItem(String txt, ActionListener act, char accel) {
         JMenuItem item = new JMenuItem(txt);
         item.addActionListener(act);
@@ -330,5 +306,39 @@ final class CYOAEngine {
     public static void main(String[] args) {
         System.out.println(System.getProperty("user.dir"));
         new CYOAEngine().start();
+    }
+
+    private final class NButton extends JButton {
+
+        private final String j;
+
+        private NButton(String jump, String label) {
+            super(label);
+            j = jump;
+
+            addActionListener(e -> {
+                optPane.removeAll();
+                try {
+                    if (!j.equals("next")) {
+                        jump(j);
+                    }
+                    parseStory();
+                } catch (IOException ex) {
+                    Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+        }
+    }
+
+    @FunctionalInterface
+    private static interface VarOp {
+
+        float doOp(float a, float b);
+    }
+
+    @FunctionalInterface
+    private static interface VarComp {
+
+        boolean doComp(float a, float b);
     }
 }
