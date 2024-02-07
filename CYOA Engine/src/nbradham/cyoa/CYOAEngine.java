@@ -3,6 +3,7 @@ package nbradham.cyoa;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
@@ -33,18 +34,25 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  */
 final class CYOAEngine {
 
+    private static final FileNameExtensionFilter FIL_COA = new FileNameExtensionFilter("Choose your Own Adventure File", "coa"), FIL_SPOT = new FileNameExtensionFilter("Spot File", "spt");
+
     private final JFrame frame = new JFrame("Choose Your Own Adventure Engine");
     private final JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
     private final JLabel head = new JLabel("Open an adventure to begin.");
-    private final JTextArea area = new JTextArea(30, 50);
+    private final JTextArea area = new JTextArea(40, 70);
     private final HashMap<String, Object> vars = new HashMap<>();
     private final JPanel optPane = new JPanel();
-    private final JMenuItem save = createMenuItem("Save Spot", e -> {
-        // TODO: Save Spot.
-    }, 'S');
     private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
 
+    private File file;
     private RandomAccessFile raf;
+
+    private final JMenuItem save = createMenuItem("Save Spot", e -> {
+        procJFC(FIL_SPOT, "Save Spot File", fl -> {
+            // TODO: Save Spot. 
+        });
+    }, 'S');
+
     private String str0, str1;
     private float f;
     private char c;
@@ -58,7 +66,18 @@ final class CYOAEngine {
             JMenu fileMen = new JMenu("File");
             save.setEnabled(false);
             fileMen.add(createMenuItem("Open", e -> {
-                procJFC();
+                procJFC(FIL_COA, "Open Adventure File", fl -> {
+                    save.setEnabled(true);
+                    try {
+                        if (raf != null) {
+                            raf.close();
+                        }
+                        raf = new RandomAccessFile(file = fl, "r");
+                        parseStory();
+                    } catch (IOException ex) {
+                        Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                });
             }, 'O'));
             fileMen.add(save);
             fileMen.add(createMenuItem("Load Spot", e -> {
@@ -79,20 +98,11 @@ final class CYOAEngine {
         });
     }
 
-    private void procJFC() {
-        jfc.setFileFilter(new FileNameExtensionFilter("Choose your Own Adventure File", "coa"));
-        jfc.setDialogTitle("Open Adventure File");
+    private void procJFC(FileNameExtensionFilter filter, String title, FileHandler fh) {
+        jfc.setFileFilter(filter);
+        jfc.setDialogTitle(title);
         if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
-            save.setEnabled(true);
-            try {
-                if (raf != null) {
-                    raf.close();
-                }
-                raf = new RandomAccessFile(jfc.getSelectedFile(), "r");
-                parseStory();
-            } catch (IOException ex) {
-                Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            fh.handle(jfc.getSelectedFile());
         }
     }
 
@@ -328,6 +338,12 @@ final class CYOAEngine {
                 }
             });
         }
+    }
+
+    @FunctionalInterface
+    private static interface FileHandler {
+
+        void handle(File fl);
     }
 
     @FunctionalInterface
