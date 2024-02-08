@@ -59,7 +59,13 @@ Do you take them?
 >o leaveKeys Leave them.
 >w
 >f keys
-You snatch the keys before heading through the door.
+You snatch the keys before heading through the door, but then a thought crosses your mind:
+Do you really need them?
+>o next Drop them.
+>o ch2 Yep. I'll need them.
+>w
+>fd keys
+You drop the keys.
 >j ch2
 
 >l leaveKeys

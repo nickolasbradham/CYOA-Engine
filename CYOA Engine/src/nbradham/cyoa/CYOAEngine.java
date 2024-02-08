@@ -249,6 +249,8 @@ final class CYOAEngine {
                         }
                     }
                 }
+                case ">fd" ->
+                    vars.remove(nextTok());
                 case ">h" ->
                     head.setText(readLine());
                 case ">i" -> {
