@@ -1,14 +1,21 @@
 >l start
 >c
 >cv
+>f testSpace test space
 >h Example Story
 An example story by the creator of the engine.
 \>c This was an escape char test.
 \\>c Here's another.
+>r rand 5 10
+Have a random number between five and ten: <rand>
 >o next Begin
 >w
 >c
+Rand: <rand>
+>l name
 >i name What is your name?
+>jf name='' noname
+>jf name=testSpace test
 Welcome, <name>! <name> will be a good reader.
 >h Chapter 1: <name> Awakens...
 You wake up in what appears to be an old rusty cell. Sun light filters through the tiny windows from outside the cell.
@@ -77,3 +84,13 @@ You climb through the hole and see a large battlefield, but the field is quiet. 
 >l end
 Author's note: I know it was short, but come on. It's supposed to be an example story. Thanks for reading! \<3
 >o start Go back to start.
+>w
+
+>l noname
+You didn't enter a name!
+>o name Sorry. I'll enter one.
+>w
+
+>l test
+Test success.
+>j name

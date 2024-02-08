@@ -7,12 +7,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,6 +41,7 @@ final class CYOAEngine {
 
     private static final String EXT_SPT = "spt", SUF_SPT = '.' + EXT_SPT, STR_NULL = "\0";
     private static final FileNameExtensionFilter FIL_COA = new FileNameExtensionFilter("Choose your Own Adventure File", "coa"), FIL_SPOT = new FileNameExtensionFilter("Spot File", EXT_SPT);
+    private static final File F_EMPTY = new File("");
 
     private final JFrame frame = new JFrame("Choose Your Own Adventure Engine");
     private final JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
@@ -50,6 +50,7 @@ final class CYOAEngine {
     private final HashMap<String, Object> vars = new HashMap<>();
     private final JPanel optPane = new JPanel();
     private final StringBuilder sb0 = new StringBuilder(), sb1 = new StringBuilder();
+    private final Random r = new Random();
 
     private File file;
     private RandomAccessFile raf;
@@ -63,6 +64,7 @@ final class CYOAEngine {
             }
             try {
                 DataOutputStream dos = new DataOutputStream(new FileOutputStream(fl));
+                dos.writeUTF(file.getAbsolutePath());
                 dos.writeUTF(head.getText());
                 dos.writeUTF(area.getText());
                 dos.writeByte(optPane.getComponentCount());
@@ -70,7 +72,6 @@ final class CYOAEngine {
                     dos.writeUTF(((NButton) nb).j);
                     dos.writeUTF(((NButton) nb).getText());
                 }
-                dos.writeUTF(file.getAbsolutePath());
                 dos.writeLong(raf.getFilePointer());
                 dos.writeByte(vars.size());
                 vars.forEach((k, v) -> {
@@ -117,20 +118,18 @@ final class CYOAEngine {
                 openJFC(FIL_SPOT, "Open Spot File", fl -> {
                     try {
                         DataInputStream dis = new DataInputStream(new FileInputStream(fl));
-                        head.setText(dis.readUTF());
-                        area.setText(dis.readUTF());
-                        n = dis.readByte();
-                        optPane.removeAll();
-                        for (byte i = 0; i < n; ++i) {
-                            createButton(dis.readUTF(), dis.readUTF());
-                        }
                         if (!(file = new File(dis.readUTF())).exists() && openJFC(FIL_COA, "COA File missing. Select COA.", sel -> file = sel)) {
                             return;
                         }
                         openFile();
+                        head.setText(dis.readUTF());
+                        area.setText(dis.readUTF());
+                        n = dis.readByte();
+                        for (byte i = 0; i < n; ++i) {
+                            createButton(dis.readUTF(), dis.readUTF());
+                        }
                         raf.seek(dis.readLong());
                         n = dis.readByte();
-                        vars.clear();
                         for (byte i = 0; i < n; ++i) {
                             str0 = dis.readUTF();
                             str1 = dis.readUTF();
@@ -166,11 +165,14 @@ final class CYOAEngine {
             raf.close();
         }
         raf = new RandomAccessFile(file, "r");
+        optPane.removeAll();
+        vars.clear();
     }
 
     private boolean openJFC(FileNameExtensionFilter filter, String title, FileHandler fh) {
         jfc.setFileFilter(filter);
         jfc.setDialogTitle(title);
+        jfc.setSelectedFile(F_EMPTY);
         if (jfc.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
             fh.handle(jfc.getSelectedFile());
             return false;
@@ -222,8 +224,9 @@ final class CYOAEngine {
                 }
                 case ">h" ->
                     head.setText(readLine());
-                case ">i" ->
-                    vars.put(nextTok(), JOptionPane.showInputDialog(raf.readLine()));
+                case ">i" -> {
+                    vars.put(nextTok(), (str0 = JOptionPane.showInputDialog(raf.readLine())) == null ? "" : str0);
+                }
                 case ">j" ->
                     jump(nextTok());
                 case ">jf" ->
@@ -247,6 +250,9 @@ final class CYOAEngine {
                             Logger.getLogger(CYOAEngine.class.getName()).log(Level.SEVERE, null, ex);
                         }
                     });
+                }
+                case ">r" -> {
+                    vars.put(nextTok(), r.nextInt(Integer.valueOf(nextTok()), Integer.valueOf(nextTok())));
                 }
                 case ">t" -> {
                     testExp(() -> {
@@ -293,16 +299,16 @@ final class CYOAEngine {
             splitStr();
             switch (c) {
                 case '=' -> {
-                    doComp((a, b) -> a == b, r);
+                    doComp((a, b) -> a instanceof Number && b instanceof Number && a == b || a.equals(b), r);
                 }
                 case '!' -> {
-                    doComp((a, b) -> a != b, r);
+                    doComp((a, b) -> a instanceof Number && b instanceof Number && a != b || !a.equals(b), r);
                 }
                 case '<' -> {
-                    doComp((a, b) -> a < b, r);
+                    doComp((a, b) -> (float) a < (float) b, r);
                 }
                 case '>' -> {
-                    doComp((a, b) -> a > b, r);
+                    doComp((a, b) -> (float) a > (float) b, r);
                 }
             }
         } else if (((bool0 = str0.charAt(0) == '!') && !vars.containsKey(str0.substring(1))) || (!bool0 && vars.containsKey(str0))) {
@@ -313,18 +319,18 @@ final class CYOAEngine {
     }
 
     private void doComp(VarComp c, Runnable r) throws IOException {
-        if (c.doComp((float) vars.getOrDefault(str0, 0f), getStr1Val())) {
+        if (c.doComp(vars.getOrDefault(str0, 0f), str1.equals("''") ? "" : getStr1Val())) {
             r.run();
         } else {
             raf.readLine();
         }
     }
 
-    private float getStr1Val() {
+    private Object getStr1Val() {
         try {
             return Float.parseFloat(str1);
         } catch (NumberFormatException e) {
-            return (float) vars.get(str1);
+            return vars.get(str1);
         }
     }
 
@@ -341,7 +347,7 @@ final class CYOAEngine {
     }
 
     private void op(VarOp o) {
-        f = getStr1Val();
+        f = (float) getStr1Val();
         vars.put(str0, o.doOp((float) vars.getOrDefault(str0, 0f), f));
     }
 
@@ -384,7 +390,7 @@ final class CYOAEngine {
         while ((c = (char) raf.read()) != 0xFFFF && !Character.isWhitespace(c)) {
             sb0.append(c);
         }
-        return c == 0xFFFF ? null : sb0.toString();
+        return c == 0xFFFF && sb0.length() == 0 ? null : sb0.toString();
     }
 
     private static JMenuItem createMenuItem(String txt, ActionListener act, char accel) {
@@ -436,6 +442,6 @@ final class CYOAEngine {
     @FunctionalInterface
     private static interface VarComp {
 
-        boolean doComp(float a, float b);
+        boolean doComp(Object a, Object b);
     }
 }
