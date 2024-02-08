@@ -42,7 +42,11 @@ Some commands can take expressions. These take the form of `[!]<flag>` or `<varA
 
 `<` Less than
 
+`[` Less than OR equal to
+
 `>` Greater than
+
+`]` Greater than OR equal to
 ## Commands
 ### `>c` Clear
 Clears the text area.
@@ -113,7 +117,7 @@ Displays a input text box to the reader with `<prompt>` displayed. The input wil
 ### `>j <label>` Jump to label
 Jumps story to next label `<label>` or loops to start of story and checks again.
 
-This is used in conjunction with `>l <label>` (see that command) to jump to different story places.
+This is used in conjunction with `>l` (see that command) to jump to different story places.
 
 **Examples:**
 
@@ -121,7 +125,7 @@ This is used in conjunction with `>l <label>` (see that command) to jump to diff
 ### `>jf <expression> <label> Jump if expression is true
 If `<expression>` is true, jumps story to next label `<label>` or loops to start of story and checks again.
 
-This is used in conjunction with `>l <label>` (see that command) to jump to different story places.
+This is used in conjunction with `>l` (see that command) to jump to different story places.
 
 **Examples:**
 
@@ -130,5 +134,14 @@ This is used in conjunction with `>l <label>` (see that command) to jump to diff
 `>jf !cutPower startMachine` If flag "cutPower" does NOT exist, jumps the story to label "startMachine".
 
 `>jf timeWaited>3 tooLate` If variable "timeWaited" is greater than 3, jumps the story to label "tooLate".
+
+### `>l <label>` Story label
+Defines a label to jump to.
+
+Used in conjunction with `>j`, `>jf`, `>o`, and `>of` (see those commands) to jump to different story places.
+
+**Examples:**
+
+`>l ending1` Defines label "ending1" for jumping to.
 
 //TODO Finish docs.
