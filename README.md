@@ -22,7 +22,7 @@ In the following example `>h` is the command token for a header and the rest of 
 You wake up in what appears to be an old rusty cell. Sun light filters through the tiny windows from outside the cell.
 It is quiet and you don't see anyone around.
 ```
-Empty lines are ignore. If you wish to put a line break in your story text just include a space on that, otherwise empty, line.
+Empty lines are ignore. If you wish to put a line break in your story text just include a "\ " (backslash + space) on that, otherwise empty, line.
 
 ## Variables
 Variables can also affect the flow of the story. There are three main vairable types: Flags, Numbers, and Strings
