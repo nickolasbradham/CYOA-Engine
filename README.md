@@ -28,7 +28,7 @@ Variables can also affect the flow of the story. There are three main vairable t
 
 `Strings` sadly have very limitted use. You can take input from the reader, display strings, and test equality on them.
 ## Expressions
-Some commands can take expressions. These take the form of `[!]<flag>` or `<varA><comparison><val | varB>`
+Some commands can take expressions. These take the form of `[!]<flag>` or `<varA><comparison><val | varB>`. Do note there is no space between variables and ops.
 
 `<flag>` will return true if "flag" exists.
 
