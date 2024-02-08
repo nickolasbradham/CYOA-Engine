@@ -218,7 +218,7 @@ final class CYOAEngine {
             switch (str0) {
                 case ">c" ->
                     area.setText("");
-                case ">cv" ->
+                case ">cf" ->
                     vars.clear();
                 case ">f" -> {
                     str0 = readLine();
