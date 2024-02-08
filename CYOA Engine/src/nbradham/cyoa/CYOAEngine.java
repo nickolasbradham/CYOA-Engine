@@ -336,7 +336,7 @@ final class CYOAEngine {
      * @see #createButton(java.lang.String, java.lang.String)
      */
     private void createButton() throws IOException {
-        createButton(nextTok(), raf.readLine());
+        createButton(nextTok(), readLine());
     }
 
     /**
