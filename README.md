@@ -31,7 +31,44 @@ Variables can also affect the flow of the story. There are three main vairable t
 ## Commands
 ### `>c` Clear
 Clears the text area.
-### `>cv` Clear Variables
-Deletes all story variables.
+### `>cf` Clear Flags/Variables
+Deletes all story flags and variables.
+### `>f <name> [value]` Create Flag/Variable
+`[value]` is parsed to the end of the line (i.e. it can have spaces).
 
+Creates a flag wth name `<name>` if `[value]` is not supplied.
+
+Creates a Number if `[value]` contains a number.
+
+Creates a String containing `[value]` if previous case is not met.
+
+**Examples:**
+
+`>f tookKeys` will create a flag labeled "tookKeys".
+
+`>f bullets 3` will create a number variable named "bullets" and set it to 3.
+
+`>f secret Best secret password` will create a String variable named "secret" and set it to "Best secret password".
+### `>fd <name>` Delete Flag/Variable
+Deletes flag/variable `<name>`.
+
+**Examples:**
+
+`>fd tookKeys` would delete the "tookKeys" flag.
+### `>h <text>` Set Header
+Sets the header text to `<text>`.
+
+`<text>` is parsed to the end of the line (i.e. it can have spaces) and it can have variables inserted in it.
+
+**Examples:**
+
+`>h Chapter 1: <name> Awakens!` would set the header text to "Chapter 1: Nick Awakens!" assuming there was variable "name" that had the text "Nick" stored in it.
+### `>i <name> <prompt>` Get input from the reader.
+Displays a input text box to the reader with `<prompt>` displayed. The input will be stored in variable `<name>`.
+
+`<prompt>` is parsed to the end of the line (i.e. it can have spaces) and it can have variables inserted in it.
+
+**Examples:**
+
+`>i reader What is your name?` Would prompt "What is your name?" and store the input in the variable "reader"
 //TODO Finish docs.
