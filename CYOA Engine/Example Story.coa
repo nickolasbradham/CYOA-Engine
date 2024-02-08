@@ -11,7 +11,9 @@ Have a random number between five and ten: <rand>
 >o next Begin
 >w
 >c
-Rand: <rand>
+>f ten 10
+>f rand+10
+Let's add ten to that number: <rand>
 >l name
 >i name What is your name?
 >jf name='' noname

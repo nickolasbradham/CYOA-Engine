@@ -283,7 +283,7 @@ final class CYOAEngine {
                     });
                 }
                 case ">r" -> {
-                    vars.put(nextTok(), r.nextInt(Integer.valueOf(nextTok()), Integer.valueOf(nextTok())));
+                    vars.put(nextTok(), (float) r.nextInt(Integer.valueOf(nextTok()), Integer.valueOf(nextTok())));
                 }
                 case ">t" -> {
                     testExp(() -> {
