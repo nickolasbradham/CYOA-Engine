@@ -27,7 +27,22 @@ Variables can also affect the flow of the story. There are three main vairable t
 `Numbers` can contain a number that can be operated on or compared.
 
 `Strings` sadly have very limitted use. You can take input from the reader, display strings, and test equality on them.
+## Expressions
+Some commands can take expressions. These take the form of `[!]<flag>` or `<varA><comparison><val | varB>`
 
+`<flag>` will return true if "flag" exists.
+
+`!<flag>` will return true if "flag" does NOT exist.
+
+**Comparisons:**
+
+`=` Equal
+
+`!` NOT equal
+
+`<` Less than
+
+`>` Greater than
 ## Commands
 ### `>c` Clear
 Clears the text area.
@@ -49,6 +64,30 @@ Creates a String containing `[value]` if previous case is not met.
 `>f bullets 3` will create a number variable named "bullets" and set it to 3.
 
 `>f secret Best secret password` will create a String variable named "secret" and set it to "Best secret password".
+### `>f <nameA><op><nameB | val>' Perform variable operation.
+Performs `<op>` on `<nameA>` and `<nameB | val>`. Then stores result in `<nameA>`. Do note that there is no space between the names and operator.
+
+**Operators:**
+
+`+` Addition
+
+`-` Substraction
+
+`*` Multiplication
+
+`/` Division
+
+`%` Remainder
+
+`:` Copy (Copies the value of `<nameB | val>` into `<nameA>`)
+
+**Examples:**
+
+`>f bullets-1` will subtract 1 from variable "bullets".
+
+`>f cash+money` will add variable "money" to variable "cash".
+
+`>f before:message` will copy variable "message" into variable "before".
 ### `>fd <name>` Delete Flag/Variable
 Deletes flag/variable `<name>`.
 
@@ -71,4 +110,25 @@ Displays a input text box to the reader with `<prompt>` displayed. The input wil
 **Examples:**
 
 `>i reader What is your name?` Would prompt "What is your name?" and store the input in the variable "reader"
+### `>j <label>` Jump to label
+Jumps story to next label `<label>` or loops to start of story and checks again.
+
+This is used in conjunction with `>l <label>` (see that command) to jump to different story places.
+
+**Examples:**
+
+`>j ending1` Jumps the story to label "ending1"
+### `>jf <expression> <label> Jump if expression is true
+If `<expression>` is true, jumps story to next label `<label>` or loops to start of story and checks again.
+
+This is used in conjunction with `>l <label>` (see that command) to jump to different story places.
+
+**Examples:**
+
+`>jf key unlockDoor` If flag "key" exists, jumps the story to label "unlockDoor".
+
+`>jf !cutPower startMachine` If flag "cutPower" does NOT exist, jumps the story to label "startMachine".
+
+`>jf timeWaited>3 tooLate` If variable "timeWaited" is greater than 3, jumps the story to label "tooLate".
+
 //TODO Finish docs.
