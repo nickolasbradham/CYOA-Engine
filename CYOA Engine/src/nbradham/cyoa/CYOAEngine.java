@@ -285,7 +285,7 @@ final class CYOAEngine {
                 case ">r" -> {
                     vars.put(nextTok(), (float) r.nextInt(Integer.valueOf(nextTok()), Integer.valueOf(nextTok())));
                 }
-                case ">t" -> {
+                case ">tf" -> {
                     testExp(() -> {
                         try {
                             printRest();
