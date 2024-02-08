@@ -361,8 +361,14 @@ final class CYOAEngine {
                 case '<' -> {
                     doComp((a, b) -> (float) a < (float) b, r);
                 }
+                case '[' -> {
+                    doComp((a, b) -> (float) a <= (float) b, r);
+                }
                 case '>' -> {
                     doComp((a, b) -> (float) a > (float) b, r);
+                }
+                case ']' -> {
+                    doComp((a, b) -> (float) a <= (float) b, r);
                 }
             }
         } else if (((bool0 = str0.charAt(0) == '!') && !vars.containsKey(str0.substring(1))) || (!bool0 && vars.containsKey(str0))) {
