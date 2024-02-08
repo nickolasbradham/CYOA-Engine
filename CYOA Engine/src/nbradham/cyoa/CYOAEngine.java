@@ -254,7 +254,7 @@ final class CYOAEngine {
                 case ">h" ->
                     head.setText(readLine());
                 case ">i" -> {
-                    vars.put(nextTok(), (str0 = JOptionPane.showInputDialog(raf.readLine())) == null ? "" : str0);
+                    vars.put(nextTok(), (str0 = JOptionPane.showInputDialog(readLine())) == null ? "" : str0);
                 }
                 case ">j" ->
                     jump(nextTok());
