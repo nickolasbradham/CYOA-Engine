@@ -246,6 +246,8 @@ final class CYOAEngine {
                                 op((a, b) -> a / b);
                             case '%' ->
                                 op((a, b) -> a % b);
+                            case ':' ->
+                                vars.put(str0, vars.get(str1));
                         }
                     }
                 }

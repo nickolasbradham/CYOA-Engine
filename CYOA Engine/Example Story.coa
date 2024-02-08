@@ -16,6 +16,8 @@ Rand: <rand>
 >i name What is your name?
 >jf name='' noname
 >jf name=testSpace test
+>f nameCopy:name
+Copy: <nameCopy>
 Welcome, <name>! <name> will be a good reader.
 >h Chapter 1: <name> Awakens...
 You wake up in what appears to be an old rusty cell. Sun light filters through the tiny windows from outside the cell.
