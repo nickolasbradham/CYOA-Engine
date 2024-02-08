@@ -68,7 +68,7 @@ Creates a String containing `[value]` if previous case is not met.
 `>f bullets 3` will create a number variable named "bullets" and set it to 3.
 
 `>f secret Best secret password` will create a String variable named "secret" and set it to "Best secret password".
-### `>f <nameA><op><nameB | val>' Perform variable operation.
+### `>f <nameA><op><nameB | val>` Perform variable operation.
 Performs `<op>` on `<nameA>` and `<nameB | val>`. Then stores result in `<nameA>`. Do note that there is no space between the names and operator.
 
 **Operators:**
@@ -122,7 +122,7 @@ This is used in conjunction with `>l` (see that command) to jump to different st
 **Examples:**
 
 `>j ending1` Jumps the story to label "ending1"
-### `>jf <expression> <label> Jump if expression is true
+### `>jf <expression> <label>` Jump if expression is true
 If `<expression>` is true, jumps story to next label `<label>` or loops to start of story and checks again.
 
 This is used in conjunction with `>l` (see that command) to jump to different story places.
