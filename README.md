@@ -203,7 +203,7 @@ If `<expression>` is true,  Displays `<text>`.
 
 `>tf !tookKeys You realize you forgot your keys and go back to get them.` If flag "tookKeys" does NOT exist, displays "You realize you forgot your keys and go back to get them."
 
-`>tf waits>1 You have waited <waits> times.` If variable "waits" is greater than one, displays You have waited 2 times." (assuming that waits is two).
+`>tf waits>1 You have waited <waits> times.` If variable "waits" is greater than one, displays "You have waited 2 times." (assuming that waits is two).
 
 ### `>w` Wait for reader interaction.
 Causes the engine to halt execution until the reader does something.
