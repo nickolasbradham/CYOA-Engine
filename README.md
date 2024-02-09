@@ -42,7 +42,7 @@ Some commands can take expressions. These take the form of `[!]<flag>` or `<varA
 
 **Comparisons:**
 
-`=` Equal
+`=` Equal (To test for an empty string use `<var>=''` (two single quotes after the equals).
 
 `!` NOT equal
 
