@@ -1,5 +1,3 @@
-Yes I know it's jank AF. Too bad!
-
 # Choose Your Own Adventure Engine
 ## This program is designed to make creating CYOA type stories easy.
 ![image](https://github.com/nickolasbradham/CYOA-Engine/assets/105989209/8e0ba0fa-330e-4f1e-9a4a-03e908b8cb20)
@@ -209,3 +207,5 @@ If `<expression>` is true,  Displays `<text>`.
 Causes the engine to halt execution until the reader does something.
 
 Most common use case is after a block of buttons so the reader can make a choice.
+
+<sub>Yes I know this engine is jank AF. Too bad!</sub>
