@@ -175,7 +175,7 @@ Creates a button with text `<text>` and that, when clicked, jumps the story to `
 ### `>of <expression> <label | "next"> <text>` Create button if expression is true
 If `<expression>` is true, creates a button with text `<text>` and that, when clicked, jumps the story to `<label>`. Using the `next` keyword just tells the engine to continue where it is.
 
-`<text>` is parsed to the end of the line (i.e. it can have spaces).
+`<text>` is parsed to the end of the line (i.e. it can have spaces) and it can have variables inserted in it.
 
 **Examples:**
 
