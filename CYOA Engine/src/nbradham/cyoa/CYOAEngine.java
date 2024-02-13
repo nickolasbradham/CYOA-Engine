@@ -471,7 +471,7 @@ final class CYOAEngine {
      */
     private String readLine() throws IOException {
         sb0.setLength(0);
-        while ((c = (char) raf.read()) != '\n') {
+        while ((c = (char) raf.read()) != '\n' && c != 0xFFFF) {
             switch (c) {
                 case '<' -> {
                     while ((c = (char) raf.read()) != '>') {
