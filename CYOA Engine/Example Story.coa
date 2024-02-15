@@ -1,25 +1,15 @@
 >l start
 >c
 >cf
->f testSpace test space
 >h Example Story
 An example story by the creator of the engine.
-\>c This was an escape char test.
-\\>c Here's another.
->r rand 5 10
-Have a random number between five and ten: <rand>
 >o next Begin
 >w
 >c
->f ten 10
->f rand+10
-Let's add ten to that number: <rand>
+
 >l name
 >i name What is your name?
 >jf name='' noname
->jf name=testSpace test
->f nameCopy:name
-Copy: <nameCopy>
 \ 
 Welcome, <name>! <name> will be a good reader.
 >h Chapter 1: <name> Awakens...
@@ -100,8 +90,3 @@ Author's note: I know it was short, but come on. It's supposed to be an example 
 >l noname
 You didn't enter a name!
 >o name Sorry. I'll enter one.
->w
-
->l test
-Test success.
->j name
